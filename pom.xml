@@ -3,7 +3,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.xobo.dorado</groupId>
 	<artifactId>mybatis-pagehelper-spring-boot-starter</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>0.0.1</version>
 	<description>a project mybatis pagehelper</description>
 	<url></url>
 
@@ -33,10 +33,11 @@
 
 	<licenses>
 		<license>
-			<name>GNU AFFERO GENERAL PUBLIC LICENSE</name>
-			<url>https://www.gnu.org/licenses/agpl-3.0.en.html</url>
+			<name>MIT License</name>
+			<url>http://www.opensource.org/licenses/mit-license.php</url>
 		</license>
 	</licenses>
+
 	<developers>
 		<developer>
 			<name>Bing ZHOU</name>
