@@ -24,14 +24,18 @@ import com.github.pagehelper.PageRowBounds;
 @Intercepts({
     @Signature(type = Executor.class, method = "query",
         args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
-    @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class,
-        RowBounds.class, ResultHandler.class, CacheKey.class, BoundSql.class}),
-})
+    @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class,
+        ResultHandler.class, CacheKey.class, BoundSql.class}),})
 public class DoradoPageInterceptor implements Interceptor {
 
+  /**
+   *
+   */
   @SuppressWarnings({"rawtypes", "unchecked"})
   public Object intercept(Invocation invocation) throws Throwable {
     Object[] args = invocation.getArgs();
+
+    // 方法所有参数
     Object parameter = args[1];
 
     Page<?> page = null;
@@ -39,19 +43,30 @@ public class DoradoPageInterceptor implements Interceptor {
     if (parameter instanceof Page) {
       page = (Page<?>) parameter;
     } else if (parameter instanceof Map) {
-      for (Entry<String, Object> entry : ((Map<String, Object>) parameter).entrySet()) {
+      Map<String, Object> parameterMap = (Map<String, Object>) parameter;
+      Map params = null;
+      int mapParams = 0;
+      for (Entry<String, Object> entry : parameterMap.entrySet()) {
         Object value = entry.getValue();
         if (value instanceof Page) {
           page = (Page) value;
-          break;
+        } else if (value instanceof Map) {
+          mapParams++;
+          if (mapParams == 1) {
+            params = (Map) value;
+          }
         }
+      }
+
+      // 如果只有一个Map参数(query(page, paramsMap) 形式，那么把paramsMap参数提升到上层Map)，
+      if (mapParams == 0) {
+        parameterMap.putAll(params);
       }
     }
 
     PageRowBounds pageRowBounds = null;
     if (page != null) {
-      pageRowBounds =
-          new PageRowBounds(page.getPageSize() * (page.getPageNo() - 1), page.getPageSize());
+      pageRowBounds = new PageRowBounds(page.getPageSize() * (page.getPageNo() - 1), page.getPageSize());
       pageRowBounds.setCount(true);
       args[2] = pageRowBounds;
     }
