@@ -5,7 +5,7 @@
 	<artifactId>mybatis-pagehelper-spring-boot-starter</artifactId>
 	<version>0.0.1</version>
 	<description>a project mybatis pagehelper</description>
-	<url></url>
+	<url>https://github.com/cnxobo/mybatis-pagehelper-spring-boot-starter</url>
 
 
 	<parent>
@@ -122,4 +122,5 @@
 			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
 		</repository>
 	</distributionManagement>
+	<name>mybatis pagehelper spring boot starter</name>
 </project>
