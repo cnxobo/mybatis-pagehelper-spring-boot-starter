@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.ibatis.cache.CacheKey;
 import org.apache.ibatis.executor.Executor;
@@ -24,9 +26,11 @@ import com.github.pagehelper.PageRowBounds;
 @Intercepts({
     @Signature(type = Executor.class, method = "query",
         args = {MappedStatement.class, Object.class, RowBounds.class, ResultHandler.class}),
-    @Signature(type = Executor.class, method = "query", args = {MappedStatement.class, Object.class, RowBounds.class,
-        ResultHandler.class, CacheKey.class, BoundSql.class}),})
+    @Signature(type = Executor.class, method = "query",
+        args = {MappedStatement.class, Object.class, RowBounds.class,
+            ResultHandler.class, CacheKey.class, BoundSql.class}),})
 public class DoradoPageInterceptor implements Interceptor {
+  private static Pattern pattern = Pattern.compile("^param\\d+$");
 
   /**
    *
@@ -46,27 +50,36 @@ public class DoradoPageInterceptor implements Interceptor {
       Map<String, Object> parameterMap = (Map<String, Object>) parameter;
       Map params = null;
       int mapParams = 0;
+      boolean hasPage = false;
       for (Entry<String, Object> entry : parameterMap.entrySet()) {
         Object value = entry.getValue();
         if (value instanceof Page) {
           page = (Page) value;
+          hasPage = true;
         } else if (value instanceof Map) {
-          mapParams++;
-          if (mapParams == 1) {
-            params = (Map) value;
+          String key = entry.getKey();
+          Matcher matcher = pattern.matcher(key);
+
+          if (matcher.find()) {
+            mapParams++;
+            if (mapParams == 1) {
+              params = (Map) value;
+            }
           }
+
         }
       }
 
       // 如果只有一个Map参数(query(page, paramsMap) 形式，那么把paramsMap参数提升到上层Map)，
-      if (mapParams == 0) {
+      if (hasPage && mapParams == 1) {
         parameterMap.putAll(params);
       }
     }
 
     PageRowBounds pageRowBounds = null;
     if (page != null) {
-      pageRowBounds = new PageRowBounds(page.getPageSize() * (page.getPageNo() - 1), page.getPageSize());
+      pageRowBounds =
+          new PageRowBounds(page.getPageSize() * (page.getPageNo() - 1), page.getPageSize());
       pageRowBounds.setCount(true);
       args[2] = pageRowBounds;
     }
